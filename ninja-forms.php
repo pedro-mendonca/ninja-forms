@@ -87,9 +87,6 @@ class Ninja_Forms {
 			// Start our submissions custom post type class
 			self::$instance->subs_cpt = new NF_Subs_CPT();
 
-			// Add our registration class object
-			self::$instance->register = new NF_Register();
-
 			// The forms variable won't be interacted with directly.
 			// Instead, the forms() methods will act as wrappers for it.
 			self::$instance->forms = new NF_Forms();
@@ -122,6 +119,9 @@ class Ninja_Forms {
 
 		// Get our notifications up and running.
 		self::$instance->notifications = new NF_Notifications();
+
+		// Get our fields up and running.
+		self::$instance->fields = new NF_Fields();
 
 		// Get our step processor up and running.
 		// We only need this in the admin.
@@ -272,6 +272,16 @@ class Ninja_Forms {
 		return self::$instance->forms;
 	}
 
+	public function field( $field_id = '' ) {
+		$field_var = 'field_' . $form_id;
+		// Check to see if an object for this field already exists
+		// Create one if it doesn't exist.
+		if ( ! isset ( self::$instance->$field_var ) )
+			self::$instance->$field_var = new NF_Field( $field_id );
+
+		return self::$instance->$field_var;
+	}
+
 	/**
 	 * Setup plugin constants
 	 *
@@ -354,27 +364,26 @@ class Ninja_Forms {
 	 */
 	private function includes() {
 		// Include our sub object.
-		require_once( NF_PLUGIN_DIR . 'classes/sub.php' );
+		require_once( NF_PLUGIN_DIR . 'classes/subs/sub.php' );
 		// Include our subs object.
-		require_once( NF_PLUGIN_DIR . 'classes/subs.php' );
+		require_once( NF_PLUGIN_DIR . 'classes/subs/subs.php' );
 		// Include our subs CPT.
-		require_once( NF_PLUGIN_DIR . 'classes/subs-cpt.php' );
+		require_once( NF_PLUGIN_DIR . 'classes/subs/subs-cpt.php' );
 		// Include our form object.
-		require_once( NF_PLUGIN_DIR . 'classes/form.php' );
-		// Include our form sobject.
-		require_once( NF_PLUGIN_DIR . 'classes/forms.php' );
-		// Include our field, notification, and sidebar registration class.
-		require_once( NF_PLUGIN_DIR . 'classes/register.php' );
+		require_once( NF_PLUGIN_DIR . 'classes/forms/form.php' );
+		// Include our forms object.
+		require_once( NF_PLUGIN_DIR . 'classes/forms/forms.php' );
 		// Include our 'nf_action' watcher.
 		require_once( NF_PLUGIN_DIR . 'includes/actions.php' );
-		// Include our single notification object
-		require_once( NF_PLUGIN_DIR . 'classes/notification.php' );
-		// Include our notifications object
-		require_once( NF_PLUGIN_DIR . 'classes/notifications.php' );
-		// Include our notification table object
-		require_once( NF_PLUGIN_DIR . 'classes/notifications-table.php' );
-		// Include our base notification type
-		require_once( NF_PLUGIN_DIR . 'classes/notification-base-type.php' );
+		// Include our single action object
+		require_once( NF_PLUGIN_DIR . 'classes/actions/action.php' );
+		// Include our actions object
+		require_once( NF_PLUGIN_DIR . 'classes/actions/actions.php' );
+		// Include our action table object
+		require_once( NF_PLUGIN_DIR . 'classes/actions/actions-table.php' );
+
+		//Include our fields object
+		require_once( NF_PLUGIN_DIR . 'classes/fields/fields.php' );
 
 		if ( is_admin () ) {
 			// Include our step processing stuff if we're in the admin.
@@ -383,7 +392,7 @@ class Ninja_Forms {
 
 
 			// Include our download all submissions php files
-			require_once( NF_PLUGIN_DIR . 'classes/download-all-subs.php' );
+			require_once( NF_PLUGIN_DIR . 'classes/subs/download-all-subs.php' );
 			require_once( NF_PLUGIN_DIR . 'includes/admin/upgrades/convert-notifications.php' );
 			require_once( NF_PLUGIN_DIR . 'includes/admin/upgrades/update-email-settings.php' );
 			require_once( NF_PLUGIN_DIR . 'includes/admin/upgrades/upgrade-functions.php' );
