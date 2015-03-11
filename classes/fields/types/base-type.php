@@ -13,6 +13,17 @@
 abstract class NF_Field_Base_Type {
 	
 	function __construct() {
-		
+		// This space left intentionally blank
 	}
+
+	function render( $field_id ) {
+		// This space left intentionally blank
+	}
+
+	function edit_field( $field_id ) {
+		?>
+		Hello World
+		<?php
+	}
+
 }

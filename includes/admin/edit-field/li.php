@@ -333,7 +333,21 @@ function nf_output_registered_field_settings( $field_id, $data = array() ) {
 					<?php
 				}
 				?>
-				<!-- <td width="15%"><a href="#" class="ninja-forms-field-add-def" id="ninja_forms_field_<?php echo $field_id;?>_def" class="ninja-forms-field-add-def">Add Defined</a></td><td width="15%"><a href="#" class="ninja-forms-field-remove-def" id="ninja_forms_field_<?php echo $field_id;?>_def">Remove Defined</a></td> -->
+				<td width="15%">
+					<select name="">
+						<option>Anti-Spam</option>
+						<option>Checkbox</option>
+						<option>Credit Card</option>
+						<option>List</option>
+						<option>Multi Checkbox</option>
+						<option>Password</option>
+						<option>Radio</option>
+						<option>Star Rating</option>
+						<option>Submit</option>
+						<option selected="selected">Textbox</option>
+						<option>Textarea</option>
+					</select>
+				</td>
 				<?php
 				if ( $reg_field['show_fav'] ) {
 					?>

@@ -149,7 +149,7 @@ function ninja_forms_admin(){
 				<div id="post-body">
 					<div id="post-body-content">
 						<?php
-
+						// echo Ninja_Forms()->field( 1 )->get_setting( 'label' );
 						//Check to see if the registered tab has an metaboxes registered to it.
 						if(isset($ninja_forms_tabs_metaboxes[$current_page][$current_tab]) AND !empty($ninja_forms_tabs_metaboxes[$current_page][$current_tab])){
 							?>

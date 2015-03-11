@@ -12,7 +12,11 @@
 class NF_Field_Text extends NF_Field_Base_Type
 {
 	function __construct() {
-		parent::__construct();
+		// parent::__construct();
+	}
+
+	function render( $field_id ) {
+		
 	}
 
 }

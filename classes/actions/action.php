@@ -59,9 +59,8 @@ class NF_Notification
 	 * @return void
 	 */
 	public function edit_screen() {
-		$type = $this->type;
 		// Call our type edit screen.
-		Ninja_Forms()->notification_types[ $type ]->edit_screen( $this->id );
+		Ninja_Forms()->notification_types[ $this->type ]->edit_screen( $this->id );
 	}
 
 	/**
