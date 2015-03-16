@@ -55,4 +55,8 @@ class NF_Field
 	function render() {
 		Ninja_Forms()->field_types[ $this->type ]->render( $this->id );
 	}
+
+	function settings_template() {
+		Ninja_Forms()->field_types[ $this->type ]->settings_template( $this->id );
+	}
 }

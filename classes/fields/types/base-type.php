@@ -20,10 +20,8 @@ abstract class NF_Field_Base_Type {
 		// This space left intentionally blank
 	}
 
-	function edit_field( $field_id ) {
-		?>
-		Hello World
-		<?php
+	function settings_template( $field_id ) {
+
 	}
 
 }

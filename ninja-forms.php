@@ -147,6 +147,8 @@ class Ninja_Forms {
 	public function admin_init() {
 		// Check and update our version number.
 		self::$instance->update_version_number();
+		// Setup our admin rest api for form building
+		self::$instance->admin_rest_api = require_once( NF_PLUGIN_DIR . 'classes/rest-api.php' );
 
 		// Fire our Ninja Forms init action.
 		do_action( 'nf_admin_init', self::$instance );

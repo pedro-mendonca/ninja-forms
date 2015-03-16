@@ -19,6 +19,10 @@ class NF_Field_Text extends NF_Field_Base_Type
 		
 	}
 
+	function settings_template( $field_id ) {
+		parent::settings_template( $field_id );
+	}
+
 }
 
 return new NF_Field_Text();
