@@ -1,38 +1,5 @@
 ( function ( $ ) {
 
-// jQuery plugin to decode querystring params and return an object.
-// i.e. foo=bar&test=blah ->  { foo: bar, test: blah }
-var re = /([^&=]+)=?([^&]*)/g;
-var decodeRE = /\+/g;  // Regex for replacing addition symbol with a space
-var decode = function (str) {return decodeURIComponent( str.replace(decodeRE, " ") );};
-$.parseParams = function(query) {
-    var params = {}, e;
-    while ( e = re.exec(query) ) { 
-        var k = decode( e[1] ), v = decode( e[2] );
-        if (k.substring(k.length - 2) === '[]') {
-            k = k.substring(0, k.length - 2);
-            (params[k] || (params[k] = [])).push(v);
-        }
-        else params[k] = v;
-    }
-    return params;
-};
-
-// jQuery plugin that breaks apart a URL and returns the pieces.
-// This is needed to make our hash-less routing system work properly.
-$.parseURL = function( href ) {
-    var match = href.match(/^(https?\:)\/\/(([^:\/?#]*)(?:\:([0-9]+))?)(\/[^?#]*)(\?[^#]*|)(#.*|)$/);
-    return match && {
-        protocol: match[1],
-        host: match[2],
-        hostname: match[3],
-        port: match[4],
-        pathname: match[5],
-        query: match[6],
-        hash: match[7]
-    }
-}
-
 // We don't want to use the default <% %> tags because of PHP servers using ASP-like tags.
 // Instead, we will use <# #> in our templates.
 _.templateSettings = {
@@ -58,48 +25,32 @@ var nfField = Backbone.Model.extend( {
 
 // Our data collection for fields
 var nfFields = Backbone.Collection.extend( {
-  url: nf_rest_url,
+  url: nf_rest_url + '&collection=fields',
   model: nfField
 } );
 
+// Our data model for field type
+var nfFieldType = Backbone.Model.extend( {
+
+} );
+
+// Our data collection for field types
+var nfFieldTypes = Backbone.Collection.extend( {
+  url: nf_rest_url + '&collection=field_types',
+  model: nfFieldType
+} );
+
+app.Collections.fieldTypes = new nfFieldTypes();
+app.Collections.fieldTypes.fetch();
+
 $( document ).ready( function() {
 
-  var nfFieldRouter = Backbone.Router.extend({
-    routes: {
-        '*notFound' : 'default',
-        ''          : 'default'
-    },
-
-    default: function( pathname, query ) {
-      var query = $.parseParams( query );
-      if ( 'undefined' !== typeof query.section ) {
-       
-        var section = query.section;
-      } else {
-        // Just here for testing. Should be removed later.
-        var section = 'basic';
-      }
-
-    },
-
-    initializeRouter: function () {
-      Backbone.history.start({ pushState: true });
-      $( document ).on( 'click', 'a[data-nf-backbone]', function ( evt ) {
-
-        var href = $( this ).attr( 'href' );
-        var protocol = this.protocol + '//';
-
-        if ( href.slice( protocol.length ) !== protocol ) {
-          evt.preventDefault();
-          href = $.parseURL( href );
-          href = href.pathname + href.query;
-          app.router.navigate( href, { trigger: true } );
-        }
-      } );
-    }
-
-  });
-
+  /**
+   * Main view that runs on page load.
+   * Loops through our fields and generates a view for each.
+   * 
+   * @since  3.0
+   */
   var nfBuilderView = Backbone.View.extend( {
     el: $( '.nf-form-builder' ),
 
@@ -110,86 +61,212 @@ $( document ).ready( function() {
     },
 
     render: function() {
+      var that = this;
       this.collection.each( function( field ) {
-          app.Views.field = new nfFieldView( { model: field } );
+          app.Views.field = new nfFieldView( { el: that.el, model: field } );
       } );
     }
 
   } );
 
+  /**
+   * View that represents a single field view in our editor.
+   *
+   * The HTML structure of the field is:
+   * <field>
+   *   <header></header>
+   *   <body>
+   *     <sidebar></sidebar>
+   *     <content>
+   *       <inside></inside>
+   *     </content>  
+   *   </body>
+   * </field>
+   *  
+   * @since  3.0
+   */
   var nfFieldView = Backbone.View.extend( {
-    el: $( '.nf-field-sidebar' ), // attaches `this.el` to an existing element.
-    sidebarTemplate: $('#tmpl-nf-field-sidebar').html(),
 
     initialize: function(){
       _.bindAll( this, 'render' ); // fixes loss of context for 'this' within methods
-      console.log( this.model );
-      // this.render( 'basic' ); // not all views are self-rendering. This one is.
+      this.render(); // not all views are self-rendering. This one is.
     },
 
-    render: function( section ){
+    render: function(){
+      // Render our field div container
+      var template = _.template( $( '#tmpl-nf-field' ).html() );
+
+      // Work around for getting the newly appended html element as an object.
+      // This lets us reference these html elements later.
+      var fieldDiv = $( '<div>' ).html( template );
+      this.fieldDiv = $( fieldDiv ).find( '.nf-field' );
+      $( this.el ).append( this.fieldDiv );
+      // Our header div is already a part of the nf-field div.
+      // So we just have to find it.
+      this.headerDiv = $( this.fieldDiv ).find( '.nf-field-header' );
+
       // Render our header.
-      // app.Views.fields[3].header = new nfFieldHeaderView( { field_id: 3 } );
-      // Render our sidebar.
-      // app.Views.fields[3].sidebar = new nfFieldSidebarView( { field_id: 3, section: section })
-      // Render our settings section.
-      // app.Views.fields[3].settings = new nfFieldSettingsView( { field_id: 3 } );
+      this.headerView = new nfFieldHeaderView( { fieldView: this, el: $( this.headerDiv ), model: this.model } );
+      
+      // Append our body div.
+      // We append our div here so that events within the view only happen inside this element.
+      template = _.template( $('#tmpl-nf-field-body' ).html() );      
+      $( this.fieldDiv ).append( template );
+      this.bodyDiv = $( this.fieldDiv ).find( '.nf-field-body');
+
+      // Render our body.
+      this.bodyView = new nfFieldBodyView( { fieldView: this, el: $( this.bodyDiv ), model: this.model } );
       
       return this;
     }
 
   } );
 
+  /**
+   * View that represents each field's header row.
+   * 
+   * @since  3.0
+   */
   var nfFieldHeaderView = Backbone.View.extend( {
-    el: $( '.nf-field' ),
 
-    initialize: function() {
-      _.bindAll( this, 'render' ),
+    initialize: function( vars ) {
+      _.bindAll( this, 'render' );
+      // Add our passed fieldView to 'this' context.
+      // This lets us access parent view stuff from within the child.
+      this.fieldView = vars.fieldView;
       this.render();
     },
 
     render: function() {
-      var template = _.template( $( '#tmpl-nf-field-header' ).html() );
+      // Render our header.
+      var template = _.template( $( '#tmpl-nf-field-header' ).html(), { field: this.model } );
       $( this.el ).html( template );
+      // Prevent selection so that double-clicking on the header doesn't select text.
+      $( '.nf-field-header' ).disableSelection();
+    },
+
+    // Listen for double clicks and clicks inside our header and on our toggle button.
+    events: {
+      'dblclick': 'toggleFieldView',
+      'click .toggle': 'toggleFieldView'
+    },
+
+    // Calls the toggle() function of the parent view's body.
+    toggleFieldView: function() {
+      this.fieldView.bodyView.toggle();
+    }
+
+  } );
+
+  /**
+   * View that represents our field body.
+   * 
+   * The HTML structure of the body is:
+   * <body>
+   *   <sidebar></sidebar>
+   *   <content>
+   *     <inside></inside>
+   *   </content>  
+   * </body>
+   * 
+   * @since  3.0
+   */
+  var nfFieldBodyView = Backbone.View.extend( {
+    initialize: function( vars ) {
+      _.bindAll( this, 'render' );
+      // Add our passed fieldView to 'this' context.
+      // This lets us access parent view stuff from within the child.
+      this.fieldView = vars.fieldView;
+      this.render( 'basic' );
+    },
+
+    render: function( section ) {
+      // Set our active class for the field.
+      $( this.fieldView.fieldDiv ).addClass( 'active' );
+      
+      // Append our sidebar div
+      // We append our div here so that events within the view only happen inside this element.
+      template = _.template( $('#tmpl-nf-field-sidebar' ).html() );      
+      $( this.el ).append( template );
+      this.sidebarDiv = $( this.el ).find( '.nf-field-sidebar' );
+
+      // Render our sidebar.
+      this.sidebarView = new nfFieldSidebarView( { fieldView: this.fieldView, el: this.sidebarDiv, model: this.model, section: section } );
+     
+      // Append our content div
+      // We append our div here so that events within the view only happen inside this element.
+      template = _.template( $('#tmpl-nf-field-content' ).html() );      
+      $( this.el ).append( template );
+      this.contentDiv = $( this.el ).find( '.nf-field-content .inside' );
+
+      // Render our content section.
+      this.contentView = new nfFieldContentView( { fieldView: this.fieldView, el: this.contentDiv, model: this.model } );
+    },
+
+    toggle: function() {
+      // Check to see if our body's HTML is empty.
+      if ( '' == $( this.el ).html() ) {
+        //If it is empty, re-render our body.
+        this.render( 'basic' );
+      } else {
+        // It isn't empty, so deactivate this field and remove the body HTML.
+        $( this.fieldView.fieldDiv ).removeClass( 'active' );
+        $( this.el ).empty();
+      }
     }
 
   } );
 
   var nfFieldSidebarView = Backbone.View.extend( {
-    el: $( '.nf-field-sidebar' ),
 
     initialize: function( vars ) {
       _.bindAll( this, 'render' );
-      this.field_id = vars.field_id;
+      this.fieldView = vars.fieldView;
       this.render( vars.section );
     },
 
     render: function( section ) {
-      var template = _.template( $( '#tmpl-nf-field-sidebar' ).html(), { section: section } );
-      $( this.el ).html( template );
+      // Get our current field type.
+      var fieldType = this.model.get( 'type' );
+      fieldType = app.Collections.fieldTypes.get( fieldType );
+      sidebars = fieldType.get( 'data' ).sidebars;
+
+      var template = _.template( $( '#tmpl-nf-field-tabs' ).html(), { sidebars: sidebars, section: section } );
+      $( this.el ).append( template );
+    },
+
+    events: {
+      'click a': 'change'
+    },
+
+    change: function( e ) {
+      e.preventDefault();
+      $( this.el ).find( '.nf-field-tab' ).removeClass( 'active' );
+      $( e.target ).parent().addClass( 'active' );
+      var section = $( e.target ).data( 'section' );
+      this.fieldView.bodyView.contentView.render( section );
     }
 
   } );
 
-  var nfFieldSettingsView = Backbone.View.extend( {
-    el: $( '.nf-field-content .inside' ),
+  var nfFieldContentView = Backbone.View.extend( {
 
     initialize: function( field_id ) {
       _.bindAll( this, 'render' );
       this.field_id = field_id;
-      this.render();
+      this.render( 'basic' );
     },
 
-    render: function() {
-      var settings = {};
-
-      settings.label = { type: 'text', label: 'Label', id: 'label', placeholder: 'My Field', desc: 'The text that identifies the field for your user.' };
-      settings.label_pos = { type: 'select', label: 'Label Position', id: 'label_pos', desc: 'This is where the label is displayed in relation to the element.' };
+    render: function( section ) {
+      var fieldType = this.model.get( 'type' );
+      var settings = app.Collections.fieldTypes.get( fieldType );
+      settings = settings.get( 'data' ).settings[section];
 
       $( this.el ).html('');
       var template = '';
       var that = this;
-      _.each( settings, function( setting ) {
+      _.each( settings, function( setting, id ) {
+        setting.id = id;
         template = _.template( $( '#tmpl-nf-field-' + setting.type ).html(), { setting: setting } );
         $( that.el ).append( template );
       } );
@@ -206,8 +283,6 @@ $( document ).ready( function() {
 
   } );
 
-  app.router = new nfFieldRouter();
-  app.router.initializeRouter();
   app.Collections.fields = new nfFields();
   app.Views.builder = new nfBuilderView( { collection: app.Collections.fields } );
 

@@ -41,9 +41,7 @@ class NF_Admin_Rest_API
 
         global $pagenow;
 
-        if ( $pagenow == 'admin.php' && isset ( $_REQUEST['page'] ) && $_REQUEST['page'] == 'ninja-forms' && ! empty( $_REQUEST['nf_rest'] ) ) {
-            add_action( 'admin_init', array( $this, 'check_rest_api' ), 11 );
-        }
+        add_action( 'wp_ajax_nf_rest', array( $this, 'check_rest_api' ) );
     }
 
     public function check_rest_api() {
@@ -174,17 +172,115 @@ class NF_Admin_Rest_API
     protected function rest_api() {
         switch( $this->method ) {
             case 'GET':
-                // $object_id = $this->request['object_id'];
-                $data = array(
-                	array( 
-                		'type' 			=> 'text',
-             			'id' 			=> 10,
-         			),
-                   	array( 
-                		'type' 			=> 'checkbox',
-             			'id' 			=> 11,
-         			),
-                 );
+                if ( 'fields' == $this->request['collection'] ) {
+                    // $object_id = $this->request['object_id'];
+                    $data = array(
+                        array( 
+                            'type'          => 'text',
+                            'id'            => 10,
+                            'label'         => 'First Name',
+                        ),
+                        array( 
+                            'type'          => 'text',
+                            'id'            => 12,
+                            'label'         => 'Last Name',
+                        ),
+                        array( 
+                            'type'          => 'checkbox',
+                            'id'            => 15,
+                            'label'         => 'Do You Agree?',
+                        ),
+                    );
+                } else if ( 'field_types' == $this->request['collection'] ) {
+                    $data = array(
+                        array(
+                            'id'                            => 'text',
+                            'data'                          => array(
+                                'sidebars'                  => array(
+                                    'basic'                 => __( 'Basic', 'ninja-forms' ),
+                                    'calc'                  => __( 'Calculations', 'ninja-forms' ),
+                                    'advanced'              => __( 'Advanced', 'ninja-forms' ),
+                                    'cl'                    => __( 'Conditional Logic', 'ninja-forms' ),
+                                    // 'styles'                => __( 'Styles', 'ninja-forms' ),
+                                ),
+                                'settings'                  => array(
+                                    'basic'                 => array(
+                                        'label'             => array(
+                                            'type'          => 'text',
+                                            'label'         => __( 'Label', 'ninja-forms' ),
+                                            'placeholder'   => __( 'My Field', 'ninja-forms' ),
+                                            'desc'          => __( 'The text that identifies the field for your user.', 'ninja-forms' ),
+                                        ),
+                                       'label_pos'          => array(
+                                            'type'          => 'select',
+                                            'label'         => __( 'Label Position', 'ninja-forms' ),
+                                            'desc'          => __( 'This is where the label is displayed in relation to the element.', 'ninja-forms' ),
+                                        ),
+                                       'placeholder'        => array(
+                                            'type'          => 'text',
+                                            'label'         => __( 'Placeholder', 'ninja-forms' ),
+                                            'desc'          => __( 'This text will be placed inside the field by default.', 'ninja-forms' ),
+
+                                        ),
+                                    ),
+                                    'calc'                  => array(
+                                        'auto_total'        => array(
+                                            'type'          => 'checkbox',
+                                            'label'         => __( 'Include in auto-total', 'ninja-forms' ),
+                                            'desc'          => __( 'If this box is checked, this value will be added to the auto calculation', 'ninja-forms' ),
+                                        ),
+                                    ),
+                                ),
+                            ),
+                        ),
+                        array(
+                            'id'                            => 'checkbox',
+                            'data'                          => array(
+                                'sidebars'                  => array(
+                                    'basic'                 => __( 'Basic', 'ninja-forms' ),
+                                    'calc'                  => __( 'Calculations', 'ninja-forms' ),
+                                    'advanced'              => __( 'Advanced', 'ninja-forms' ),
+                                    'cl'                    => __( 'Conditional Logic', 'ninja-forms' ),
+                                    'styles'                => __( 'Styles', 'ninja-forms' ),                                   
+                                ),
+                                'settings'                  => array(
+                                    'basic'                 => array(
+                                        'label'             => array(
+                                            'type'          => 'text',
+                                            'label'         => __( 'Label', 'ninja-forms' ),
+                                            'placeholder'   => __( 'My Field', 'ninja-forms' ),
+                                            'desc'          => __( 'The text that identifies the field for your user.', 'ninja-forms' ),
+                                        ),
+                                       'label_pos'          => array(
+                                            'type'          => 'select',
+                                            'label'         => __( 'Label Position', 'ninja-forms' ),
+                                            'desc'          => __( 'This is where the label is displayed in relation to the element.', 'ninja-forms' ),
+                                        ),
+                                    ),
+                                    'calc'                  => array(
+                                        'checked_value'     => array(
+                                            'type'          => 'text',
+                                            'label'         => __( 'Checked Calculation Value', 'ninja-forms' ),
+                                            'desc'          => __( 'This is the value that will be used if Checked', 'ninja-forms' ),
+                                        ), 
+                                        'unchecked_value'     => array(
+                                            'type'          => 'text',
+                                            'label'         => __( 'Unchecked Calculation Value', 'ninja-forms' ),
+                                            'desc'          => __( 'This is the value that will be used if Unchecked', 'ninja-forms' ),
+                                        ),
+                                        'auto_total'        => array(
+                                            'type'          => 'checkbox',
+                                            'label'         => __( 'Include in auto-total', 'ninja-forms' ),
+                                            'desc'          => __( 'If this box is checked, this value will be added to the auto calculation', 'ninja-forms' ),
+                                        ),        
+
+                                    ),
+                                ),
+                            ),
+                        ),
+                    );
+                }
+
                 return $data;
                 break;
             case 'PUT':
