@@ -1326,3 +1326,7 @@ p.debug-report {
 	display: block;
 	margin: 0 auto;
 }
+
+.toggle {
+	cursor: pointer;
+}

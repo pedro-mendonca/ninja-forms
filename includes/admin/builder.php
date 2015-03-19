@@ -75,10 +75,12 @@ function nf_tab_builder() {
 			margin: 0;
 		}
 		.nf-field-sidebar li {
+			border: 1px solid #f1f1f1;			
 			background: #f1f1f1;
 			border-right: 1px solid #ccc;
 			margin: 0;
 			padding: 8px 20px;
+			border-left: 0;
 		}
 		.nf-field-sidebar li:first-child {
 			background: #ccc;
@@ -96,6 +98,10 @@ function nf_tab_builder() {
 			border: 1px solid #ccc;
 			border-right: 0;
 			border-left: 0;
+		}
+		.nf-field-sidebar li a {
+			display: block;
+			box-shadow: 0 0 0 0; 
 		}
 		.nf-field-content {
 			float: left;
@@ -170,13 +176,10 @@ function nf_tab_builder() {
 
 	</div>
 	<div class="nf-form-builder">
-		<div class="nf-field">
-			<div class="nf-field-header">
-				Last Name
-				<span class="dashicons dashicons-arrow-down"></span>
-			</div>
-		</div>
-		<div class="nf-field active">
+		
+
+
+<!-- 	<div class="nf-field active">
 			<div class="nf-field-header">
 				Last Name
 				<span class="dashicons dashicons-arrow-up"></span>
@@ -191,45 +194,59 @@ function nf_tab_builder() {
 					</div>
 				</div>
 			</div>
-		</div>
+		</div> -->
+		
 	</div>
 
-	<script type="text/html" id="tmpl-nf-field-header">
-		<div class="nf-field-header">
-			Middle Name
-			<span class="dashicons dashicons-arrow-down"></span>
+	<script type="text/html" id="tmpl-nf-field">
+		<div class="nf-field">
+			<div class="nf-field-header"></div>
 		</div>
 	</script>
 
+	<script type="text/html" id="tmpl-nf-field-header">
+		<#= field.get( 'label' ) #>
+		<span class="dashicons dashicons-arrow-down toggle"></span>
+	</script>
+
+	<script type="text/html" id="tmpl-nf-field-body">
+		<div class="nf-field-body"></div>
+	</script>
+
 	<script type="text/html" id="tmpl-nf-field-sidebar">
-		<ul class="nf-field-tabs">
-			<li>
-				<label>Select Field Type</label>
-				<select>
-					<option value="field-type">Single line Input</option>
-					<option value="field-type">Multi-Line Textarea</option>
-					<option value="field-type">Checkbox</option>
-					<option value="field-type">Checkbox List</option>
-					<option value="field-type">Dropdown List</option>
-					<option value="field-type">Radio List</option>
-				</select>
-			</li>
-			<?php
-			$base_url = admin_url( 'admin.php?page=ninja-forms&tab=builder&form_id=1' );
-			$basic_url = add_query_arg( array( 'section' => 'basic' ), $base_url );
-			$res_url = add_query_arg( array( 'section' => 'restrictions' ), $base_url );
-			$calc_url = add_query_arg( array( 'section' => 'calculations' ), $base_url );
-			$adv_url = add_query_arg( array( 'section' => 'advanced' ), $base_url );
-			$con_url = add_query_arg( array( 'section' => 'conditional_logic' ), $base_url );
-			$style_url = add_query_arg( array( 'section' => 'style' ), $base_url );
-			?>
-			<li class="nf-field-tab <# if ( 'basic' == section ) { #> active <# } #>"><a href="<?php echo $basic_url; ?>" data-nf-backbone >Basic</a></li>
-			<li class="nf-field-tab <# if ( 'restrictions' == section ) { #> active <# } #>"><a href="<?php echo $res_url; ?>" data-nf-backbone >Restrictions</a></li>
-			<li class="nf-field-tab <# if ( 'calculations' == section ) { #> active <# } #>"><a href="<?php echo $calc_url; ?>" data-nf-backbone >Calculations</a></li>
-			<li class="nf-field-tab <# if ( 'advanced' == section ) { #> active <# } #>"><a href="<?php echo $adv_url; ?>" data-nf-backbone >Advanced</a></li>
-			<li class="nf-field-tab <# if ( 'conditional_logic' == section ) { #> active <# } #>"><a href="<?php echo $con_url; ?>" data-nf-backbone >Conditionals</a></li>
-			<li class="nf-field-tab <# if ( 'style' == section ) { #> active <# } #>"><a href="<?php echo $style_url; ?>" data-nf-backbone >Styles</a></li>
-		</ul>
+		<div class="nf-field-sidebar"></div>
+	</script>
+
+	<script type="text/html" id="tmpl-nf-field-content">
+		<div class="nf-field-content">
+			<div class="inside"></div>
+		</div>
+	</script>
+
+	<script type="text/html" id="tmpl-nf-field-tabs">
+		
+			<ul class="nf-field-tabs">
+				<li>
+					<label>Select Field Type</label>
+					<select>
+						<option value="field-type">Single line Input</option>
+						<option value="field-type">Multi-Line Textarea</option>
+						<option value="field-type">Checkbox</option>
+						<option value="field-type">Checkbox List</option>
+						<option value="field-type">Dropdown List</option>
+						<option value="field-type">Radio List</option>
+					</select>
+				</li>
+				<#
+				_.each( sidebars, function( nicename, slug ) {
+					#>
+					<li class="nf-field-tab <# if ( slug == section ) { #> active <# } #>"><a href="#" data-section="<#= slug #>" ><#= nicename #></a></li>
+					<#
+				} );
+
+				#>
+			</ul>
+
 	</script>
 
 	<script type="text/html" id="tmpl-nf-field-checkbox">
