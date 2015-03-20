@@ -89,5 +89,5 @@ function ninja_forms_save_general_settings( $data ){
 }
 
 function ninja_forms_conversion_reset_button() {
-    echo '<a href="#" class="button-primary">Reset Conversions</a>';
+    echo '<a href="' . site_url('wp-admin/index.php?page=nf-processing&action=convert_forms&title=Updating+Form+Database') . '" class="button-primary">Reset Conversions</a>';
 }
