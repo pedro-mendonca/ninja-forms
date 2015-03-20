@@ -108,6 +108,9 @@ $( document ).ready( function() {
       // Render our header.
       this.headerView = new nfFieldHeaderView( { fieldView: this, el: $( this.headerDiv ), model: this.model } );
       
+      // Set our default active tab
+      this.currentSection = 'basic';
+
       // Append our body div.
       // We append our div here so that events within the view only happen inside this element.
       template = _.template( $('#tmpl-nf-field-body' ).html() );      
@@ -177,13 +180,15 @@ $( document ).ready( function() {
       // Add our passed fieldView to 'this' context.
       // This lets us access parent view stuff from within the child.
       this.fieldView = vars.fieldView;
-      this.render( 'basic' );
+      this.render( this.fieldView.currentSection );
     },
 
     render: function( section ) {
       // Set our active class for the field.
       $( this.fieldView.fieldDiv ).addClass( 'active' );
-      
+      // Empty our body div just incase we're changing types or toggling.
+      $( this.fieldView.bodyDiv ).empty();
+
       // Append our sidebar div
       // We append our div here so that events within the view only happen inside this element.
       template = _.template( $('#tmpl-nf-field-sidebar' ).html() );      
@@ -207,7 +212,7 @@ $( document ).ready( function() {
       // Check to see if our body's HTML is empty.
       if ( '' == $( this.el ).html() ) {
         //If it is empty, re-render our body.
-        this.render( 'basic' );
+        this.render( this.fieldView.currentSection );
       } else {
         // It isn't empty, so deactivate this field and remove the body HTML.
         $( this.fieldView.fieldDiv ).removeClass( 'active' );
@@ -217,10 +222,17 @@ $( document ).ready( function() {
 
   } );
 
+  /**
+   * View that represents our sidebar tabs.
+   * 
+   * @since  3.0
+   */
   var nfFieldSidebarView = Backbone.View.extend( {
 
     initialize: function( vars ) {
       _.bindAll( this, 'render' );
+      // Add our passed fieldView to 'this' context.
+      // This lets us access parent view stuff from within the child.
       this.fieldView = vars.fieldView;
       this.render( vars.section );
     },
@@ -228,44 +240,73 @@ $( document ).ready( function() {
     render: function( section ) {
       // Get our current field type.
       var fieldType = this.model.get( 'type' );
+      // Get our field type model.
       fieldType = app.Collections.fieldTypes.get( fieldType );
+      // Get our sidebars from the field type.
       sidebars = fieldType.get( 'data' ).sidebars;
-
-      var template = _.template( $( '#tmpl-nf-field-tabs' ).html(), { sidebars: sidebars, section: section } );
+      // Generate our html and append it to the sidebarDiv element.
+      var template = _.template( $( '#tmpl-nf-field-tabs' ).html(), { fieldTypes: app.Collections.fieldTypes.models, field: this.model, sidebars: sidebars, section: section } );
       $( this.el ).append( template );
     },
 
+    // Listen for clicks of tabs.
     events: {
-      'click a': 'change'
+      'click a': 'changeSettings',
+      'change select' : 'changeType'
     },
 
-    change: function( e ) {
+    changeSettings: function( e ) {
       e.preventDefault();
+      // Remove the active class from all tabs inside this view.
       $( this.el ).find( '.nf-field-tab' ).removeClass( 'active' );
+      // Add an active class to the tab we clicked on.
       $( e.target ).parent().addClass( 'active' );
+      // Get our desired section.
       var section = $( e.target ).data( 'section' );
+      // Redraw our contentView with the new section.
       this.fieldView.bodyView.contentView.render( section );
+    },
+
+    changeType: function( e ) {
+      this.model.set( 'type', $( e.target ).val() );
+      this.fieldView.bodyView.render( this.fieldView.currentSection );
     }
 
   } );
 
+  /**
+   * View that represents our settings content
+   * 
+   * @since  3.0
+   */
   var nfFieldContentView = Backbone.View.extend( {
 
-    initialize: function( field_id ) {
+    initialize: function( vars ) {
       _.bindAll( this, 'render' );
-      this.field_id = field_id;
-      this.render( 'basic' );
+      // Add our passed fieldView to 'this' context.
+      // This lets us access parent view stuff from within the child.
+      this.fieldView = vars.fieldView;
+      this.render( this.fieldView.currentSection );
     },
 
     render: function( section ) {
+      // Set our current section
+      this.fieldView.currentSection = section;
+
+      // Get our field type.
       var fieldType = this.model.get( 'type' );
+      // Get our settings based upon field type.
       var settings = app.Collections.fieldTypes.get( fieldType );
       settings = settings.get( 'data' ).settings[section];
 
+      // Reset our content to an empty string before appending it.
       $( this.el ).html('');
       var template = '';
       var that = this;
+      // Loop through each of our settings and output the template for that setting.
       _.each( settings, function( setting, id ) {
+        // Our templates use setting.id, but that's not a part of the setting.
+        // Set setting.id based upon the id of this setting.
         setting.id = id;
         template = _.template( $( '#tmpl-nf-field-' + setting.type ).html(), { setting: setting } );
         $( that.el ).append( template );
@@ -273,10 +314,12 @@ $( document ).ready( function() {
       return this;
     },
 
+    // Watch for changes to our inputs so that we can update our field model.
     events: {
       'change input': 'changeInput'
     },
 
+    // Update our field model with the new value.
     changeInput: function() {
       console.log( 'input changed' );
     }

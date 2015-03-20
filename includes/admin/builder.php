@@ -168,6 +168,13 @@ function nf_tab_builder() {
 			padding: 2px 0 4px 5px;
 			margin-left: 8px;
 		}
+		.nf-field-header input[type="text"], 
+		.nf-field-header textarea {
+			width: 400px;
+		}
+		.nf-field-header textarea {
+			height: 100px;
+		}
 	</style>
 	<div class="nf-form-builder-bar">
 		<a href="#" class="button-primary nf-item">Save</a>
@@ -205,7 +212,46 @@ function nf_tab_builder() {
 	</script>
 
 	<script type="text/html" id="tmpl-nf-field-header">
-		<#= field.get( 'label' ) #>
+		<#
+		switch ( field.get( 'type' ) ) {
+			case 'text':
+				#>
+				<input type="text" placeholder="<#= field.get( 'label' ) #>" disabled>
+				<#
+				break;
+			case 'checkbox':
+				#>
+				<input type="checkbox" checked="checked" disabled> <#= field.get( 'label' ) #>
+				<#
+				break;
+			case 'textarea':
+				#>
+				<textarea disabled><#= field.get( 'label' ) #></textarea>
+				<#
+				break;
+			case 'radio':
+				#>
+				<#= field.get( 'label' ) #>:
+				<ul>
+					<li>
+						<input type="radio" disabled> Option 1
+					</li>
+					<li>
+						<input type="radio" checked="checked" disabled> Option 2
+					</li>
+					<li>
+						<input type="radio" disabled> Option 3
+					</li>
+				</ul>
+				<#
+				break;
+			case 'submit':
+				#>
+				<input type="submit" disabled value="<#= field.get( 'label' ) #>">
+				<#
+		}
+		#>
+		
 		<span class="dashicons dashicons-arrow-down toggle"></span>
 	</script>
 
@@ -229,12 +275,13 @@ function nf_tab_builder() {
 				<li>
 					<label>Select Field Type</label>
 					<select>
-						<option value="field-type">Single line Input</option>
-						<option value="field-type">Multi-Line Textarea</option>
-						<option value="field-type">Checkbox</option>
-						<option value="field-type">Checkbox List</option>
-						<option value="field-type">Dropdown List</option>
-						<option value="field-type">Radio List</option>
+						<#
+						_.each( fieldTypes, function( type ) {
+							#>
+							<option value="<#= type.get( 'id' ) #>" <# if ( type.get( 'id' ) == field.get( 'type' ) ) { #> selected="selected" <# } #>><#= type.get( 'name' ) #></option>
+							<#
+						} );
+						#>
 					</select>
 				</li>
 				<#
