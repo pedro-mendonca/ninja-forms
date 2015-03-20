@@ -12,7 +12,13 @@ class NF_Convert_Forms extends NF_Step_Processing {
 		global $wpdb;
 
 		// Get all our forms
-		$forms = $wpdb->get_results( 'SELECT id FROM ' . NINJA_FORMS_TABLE_NAME, ARRAY_A );
+
+        if( 0 == $wpdb->query( "SHOW TABLES LIKE '" . NINJA_FORMS_TABLE_NAME . "'" ) ) {
+            $this->errors[] = NINJA_FORMS_TABLE_NAME . ' is not in the database';
+            return FALSE;
+        }
+
+        $forms = $wpdb->get_results( 'SELECT id FROM ' . NINJA_FORMS_TABLE_NAME, ARRAY_A );
 
 		$x = 1;
 		if ( is_array( $forms ) ) {
