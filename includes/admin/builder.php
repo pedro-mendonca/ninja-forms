@@ -212,6 +212,7 @@ function nf_tab_builder() {
 	</script>
 
 	<script type="text/html" id="tmpl-nf-field-header">
+		<span class="dashicons dashicons-arrow-down toggle"></span>
 		<#
 		switch ( field.get( 'type' ) ) {
 			case 'text':
@@ -251,8 +252,6 @@ function nf_tab_builder() {
 				<#
 		}
 		#>
-		
-		<span class="dashicons dashicons-arrow-down toggle"></span>
 	</script>
 
 	<script type="text/html" id="tmpl-nf-field-body">
