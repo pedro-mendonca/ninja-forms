@@ -147,5 +147,15 @@ function nf_output_step_processing_page() {
 				</div>
 			</div>
 	</div>
+
+    <!-- DISPLAY ERRORS -->
+    <div id="nf-upgrade-errors" class="hidden nf-upgrade-errors">
+
+        <h3 class="nf-upgrade-errors-header">Error Log</h3>
+
+        <ul class="nf-upgrade-errors-list"></ul>
+
+    </div>
+
 	<?php
 }
