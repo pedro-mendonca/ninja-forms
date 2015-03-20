@@ -33,8 +33,16 @@ function nf_step_processing_css() {
  * @return void
  */
 function nf_step_processing_js() {
+    if ( defined( 'NINJA_FORMS_JS_DEBUG' ) && NINJA_FORMS_JS_DEBUG ) {
+        $suffix = '';
+        $src = 'dev';
+    } else {
+        $suffix = '.min';
+        $src = 'min';
+    }
+
 	wp_enqueue_script( 'nf-processing',
-		NF_PLUGIN_URL . 'assets/js/min/step-processing.min.js',
+		NF_PLUGIN_URL . 'assets/js/' . $src . '/step-processing' . $suffix . '.js',
 		array( 'jquery', 'jquery-ui-core', 'jquery-ui-sortable', 'jquery-ui-datepicker', 'jquery-ui-draggable', 'jquery-ui-droppable', 'jquery-ui-progressbar' ) );
 	$step_labels = apply_filters( 'nf_step_processing_labels', array(
 		'Lacing Our Tabis',
