@@ -142,6 +142,8 @@ class NF_Step_Processing
 			$this->args['redirect'] = $this->redirect;
 		}
 
+        $return['errors'] = ( $this->errors ) ? $this->errors : false;
+
 		$return['args'] = $this->args;
 
 		echo json_encode( $return );
