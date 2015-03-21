@@ -21,6 +21,11 @@ function nf_register_tab_builder(){
 add_action( 'admin_init', 'nf_register_tab_builder' );
 
 function nf_tab_builder() {
+	global $_wp_admin_css_colors;
+
+	$current_admin_color = get_user_option( 'admin_color' );
+	$bgcolor = $_wp_admin_css_colors[ $current_admin_color ];
+
 	?>
 
 	<style>
@@ -149,8 +154,7 @@ function nf_tab_builder() {
 		}
 
 		.nf-form-builder-bar {
-			background: #333;
-/*			border: 1px solid #fff;*/
+			background: <?php echo $bgcolor->colors[1]; ?>;
 			padding: 10px;
 		}
 		.nf-field-selector a {
@@ -175,18 +179,17 @@ function nf_tab_builder() {
 		.nf-field-header textarea {
 			height: 100px;
 		}
+		.nf-disable-selection {
+		    -moz-user-select: none; /* for FireFox */
+		    -webkit-user-select: none; /* for Chrome and Safari */
+		    -khtml-user-select: none; /* probably old webkit browsers, but new support it too */
+		    user-select: none; /* for future CSS3 compliant browsers */
+		}
 	</style>
-	<div class="nf-form-builder-bar">
-		<a href="#" class="button-primary nf-item">Save</a>
-		<div class="button-secondary nf-field-selector nf-item" style="float: right;"><a href="#">Add New Field</a><a class="dashicons dashicons-arrow-down"></a></div>
-		<a href="#" class="button-secondary nf-item" style="float: right;"><span class="dashicons dashicons-sort"></span>Expand Fields</a>
-
-	</div>
+	<div class="nf-form-builder-bar"></div>
 	<div class="nf-form-builder">
-		
-
-
-<!-- 	<div class="nf-field active">
+		<!-- 	
+		<div class="nf-field active">
 			<div class="nf-field-header">
 				Last Name
 				<span class="dashicons dashicons-arrow-up"></span>
@@ -201,9 +204,38 @@ function nf_tab_builder() {
 					</div>
 				</div>
 			</div>
-		</div> -->
-		
+		</div>
+		-->
 	</div>
+
+	<script type="text/html" id="tmpl-nf-form-builder-bar">
+		<a href="#" class="button-primary nf-item">Save</a>
+		<div class="button-secondary nf-field-selector nf-item" style="float: right;"><a href="#">Add New Field</a><a class="dashicons dashicons-arrow-down"></a></div>
+	</script>
+
+	<script type="text/html" id="tmpl-nf-form-builder-bar-toggle-view">
+		<#
+		if ( 'short' == app.listView ) {
+			var type = 'list';
+		} else {
+			var type = 'exerpt';
+		}
+		#>
+		<a href="#" class="button-secondary nf-item" style="float: right;" data-function="toggleView"><span class="dashicons dashicons-<#= type #>-view" data-function="toggleView"></span>Toggle View</a>
+	</script>
+
+	<script type="text/html" id="tmpl-nf-form-builder-bar-toggle-fields">
+		<#
+		if ( 'open' == app.toggleFields ) {
+			var dir = 'down';
+			var txt = 'Expand Fields';
+		} else {
+			var dir = 'up';
+			var txt = 'Collapse Fields';
+		}
+		#>
+		<a href="#" class="button-secondary nf-item" style="float: right;" data-function="toggleFields"><span class="dashicons dashicons-arrow-<#= dir #>" data-function="toggleFields"></span><#= txt #></a>
+	</script>
 
 	<script type="text/html" id="tmpl-nf-field">
 		<div class="nf-field">
@@ -211,23 +243,33 @@ function nf_tab_builder() {
 		</div>
 	</script>
 
-	<script type="text/html" id="tmpl-nf-field-header">
-		<span class="dashicons dashicons-arrow-down toggle"></span>
+	<script type="text/html" id="tmpl-nf-field-header-toggle">
+		<#
+		if ( active ) {
+			var dir = 'up';
+		} else {
+			var dir = 'down';
+		}
+		#>
+		<span class="dashicons dashicons-arrow-<#= dir #> toggle"></span>
+	</script>
+
+	<script type="text/html" id="tmpl-nf-field-header-content-verbose">
 		<#
 		switch ( field.get( 'type' ) ) {
 			case 'text':
 				#>
-				<input type="text" placeholder="<#= field.get( 'label' ) #>" disabled>
+				<input type="text" class="nf-disable-selection" placeholder="<#= field.get( 'label' ) #>" disabled>
 				<#
 				break;
 			case 'checkbox':
 				#>
-				<input type="checkbox" checked="checked" disabled> <#= field.get( 'label' ) #>
+				<input type="checkbox" class="nf-disable-selection" checked="checked" disabled> <#= field.get( 'label' ) #>
 				<#
 				break;
 			case 'textarea':
 				#>
-				<textarea disabled><#= field.get( 'label' ) #></textarea>
+				<textarea class="nf-disable-selection" disabled><#= field.get( 'label' ) #></textarea>
 				<#
 				break;
 			case 'radio':
@@ -246,12 +288,37 @@ function nf_tab_builder() {
 				</ul>
 				<#
 				break;
+			case 'checkbox_list':
+				#>
+				<#= field.get( 'label' ) #>:
+				<ul>
+					<li>
+						<input type="checkbox" checked="checked" disabled> Option 1
+					</li>
+					<li>
+						<input type="checkbox" disabled> Option 2
+					</li>
+					<li>
+						<input type="checkbox" checked="checked" disabled> Option 3
+					</li>
+				</ul>
+				<#
+				break;
 			case 'submit':
 				#>
 				<input type="submit" disabled value="<#= field.get( 'label' ) #>">
 				<#
 		}
 		#>
+	</script>
+
+	<script type="text/html" id="tmpl-nf-field-header-content-short">
+		<#
+			var type = field.get( 'type' );
+			var typeName = fieldTypes.get( type ).get( 'name' );
+		#>
+
+		<#= field.get( 'label' ) #> - <#= typeName #>
 	</script>
 
 	<script type="text/html" id="tmpl-nf-field-body">

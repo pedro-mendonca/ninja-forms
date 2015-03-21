@@ -195,6 +195,11 @@ class NF_Admin_Rest_API
                             'id'            => 14,
                             'label'         => __( 'Pick One', 'ninja-forms' ),
                         ),
+                        array(
+                            'type'          => 'checkbox_list',
+                            'id'            => 17,
+                            'label'         => __( 'Pick A Few', 'ninja-forms' ),
+                        ),
                         array( 
                             'type'          => 'checkbox',
                             'id'            => 15,
@@ -210,7 +215,7 @@ class NF_Admin_Rest_API
                     $data = array(
                         array(
                             'id'                            => 'text',
-                            'name'                          => __( 'Text', 'ninja-forms' ),
+                            'name'                          => __( 'Single Line Text', 'ninja-forms' ),
                             'data'                          => array(
                                 'sidebars'                  => array(
                                     'basic'                 => __( 'Basic', 'ninja-forms' ),
@@ -368,6 +373,42 @@ class NF_Admin_Rest_API
                             ),
                         ),
                         array(
+                            'id'                            => 'checkbox_list',
+                            'name'                          => __( 'Checkbox List', 'ninja-forms' ),
+                            'data'                          => array(
+                                'sidebars'                  => array(
+                                    'basic'                 => __( 'Basic', 'ninja-forms' ),
+                                    'calc'                  => __( 'Calculations', 'ninja-forms' ),
+                                    'advanced'              => __( 'Advanced', 'ninja-forms' ),
+                                    'cl'                    => __( 'Conditional Logic', 'ninja-forms' ),
+                                    'styles'                => __( 'Styles', 'ninja-forms' ),                                   
+                                ),
+                                'settings'                  => array(
+                                    'basic'                 => array(
+                                        'label'             => array(
+                                            'type'          => 'text',
+                                            'label'         => __( 'Label', 'ninja-forms' ),
+                                            'placeholder'   => __( 'My Field', 'ninja-forms' ),
+                                            'desc'          => __( 'The text that identifies the field for your user.', 'ninja-forms' ),
+                                        ),
+                                       'label_pos'          => array(
+                                            'type'          => 'select',
+                                            'label'         => __( 'Label Position', 'ninja-forms' ),
+                                            'desc'          => __( 'This is where the label is displayed in relation to the element.', 'ninja-forms' ),
+                                        ),
+                                    ),
+                                    'calc'                  => array(
+                                        'auto_total'        => array(
+                                            'type'          => 'checkbox',
+                                            'label'         => __( 'Include in auto-total', 'ninja-forms' ),
+                                            'desc'          => __( 'If this box is checked, this value will be added to the auto calculation', 'ninja-forms' ),
+                                        ),        
+
+                                    ),
+                                ),
+                            ),
+                        ),
+                        array(
                             'id'                            => 'submit',
                             'name'                          => __( 'Submit Button', 'ninja-forms' ),
                             'data'                          => array(
@@ -388,6 +429,31 @@ class NF_Admin_Rest_API
                                     ),
                                 ),
                             ),
+                        ),
+                    );
+
+
+                // Obtain a list of columns
+                foreach ($data as $key => $row) {
+                    $name[$key]  = $row['name'];
+                }
+
+                // Sort the data with name descending
+                // Add $data as the last parameter, to sort by the common key
+                array_multisort($name, SORT_ASC, $data);
+
+
+                } else if ( 'builder_bar' == $this->request['collection'] ) {
+                    $data = array(
+                        array(
+                            'id'                            => 'toggleView',
+                            'function'                      => 'toggleView',
+                            'template'                      => '#tmpl-nf-form-builder-bar-toggle-view',
+                        ),
+                        array(
+                            'id'                            => 'expandFields',
+                            'function'                      => 'expandFields',
+                            'template'                      => '#tmpl-nf-form-builder-bar-toggle-fields',
                         ),
                     );
                 }
@@ -416,5 +482,6 @@ class NF_Admin_Rest_API
         }
     }
 }
+
 
 return new NF_Admin_Rest_API();

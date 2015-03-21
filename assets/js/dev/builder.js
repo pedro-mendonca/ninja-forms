@@ -9,6 +9,8 @@ _.templateSettings = {
 
 // Setup our app object.
 var app = {
+  listView: 'verbose',
+  toggleFields: 'open',
   Models: {},
   Collections: {
     fields: {}
@@ -40,13 +42,87 @@ var nfFieldTypes = Backbone.Collection.extend( {
   model: nfFieldType
 } );
 
+// Our data model for builder bar items
+var nfBuilderBarItem = Backbone.Model.extend( {
+
+} );
+
+// Our data collection for builder bar items
+var nfBuilderBarItems = Backbone.Collection.extend( {
+  url: nf_rest_url + '&collection=builder_bar',
+  model: nfBuilderBarItem
+} );
+
 app.Collections.fieldTypes = new nfFieldTypes();
 app.Collections.fieldTypes.fetch();
 
 $( document ).ready( function() {
 
+  var nfBuilderBarView = Backbone.View.extend( {
+    el: $( '.nf-form-builder-bar' ),
+
+    initialize: function() {
+      _.bindAll( this, 'render' );
+      this.collection.fetch( { success: this.render } );
+    },
+
+    render: function () {
+      var template = _.template( $( '#tmpl-nf-form-builder-bar' ).html() );
+      $( this.el ).html( template );
+      var that = this;
+      this.collection.each( function( item ) {
+        var template = _.template( $( item.get( 'template' ) ).html(), { app: app } );
+        $( that.el ).append( template );
+      } );
+    },
+
+    events: {
+      'click .nf-item': 'click'
+    },
+
+    click: function( e ) {
+      if ( 'undefined' !== typeof this[ $( e.target ).data( 'function' ) ] ) {
+        this[ $( e.target ).data( 'function' ) ]( e.target );
+      }
+    },
+
+    toggleView: function( el ) {
+
+      if ( 'short' == app.listView ) {
+        app.listView = 'verbose';
+      } else {
+        app.listView = 'short';
+      }
+
+      this.render();
+      // app.Views.builder.render();
+      _.each( app.Views.field, function( field, index ) {
+        field.headerView.render();
+      } );
+
+    },
+
+    toggleFields: function( el ) {
+
+      var that = this;
+
+      _.each( app.Views.field, function( field, index ) {
+        field[ app.toggleFields ]();
+      } );
+
+      if ( 'close' == app.toggleFields ) {
+        app.toggleFields = 'open';
+      } else {
+        app.toggleFields = 'close';
+      }
+
+      this.render();
+    }
+
+  } );
+
   /**
-   * Main view that runs on page load.
+   * Main form builder view that runs on page load.
    * Loops through our fields and generates a view for each.
    * 
    * @since  3.0
@@ -61,9 +137,14 @@ $( document ).ready( function() {
     },
 
     render: function() {
+      // Empty our builder element.
+      $( this.el ).empty();
+      // Lets us reference 'this' in our loop.
       var that = this;
+      app.Views.field = {};
       this.collection.each( function( field ) {
-          app.Views.field = new nfFieldView( { el: that.el, model: field } );
+        var id = field.get( 'id' );
+        app.Views.field[ id ] = new nfFieldView( { el: that.el, model: field } );
       } );
     }
 
@@ -89,6 +170,9 @@ $( document ).ready( function() {
 
     initialize: function(){
       _.bindAll( this, 'render' ); // fixes loss of context for 'this' within methods
+      if ( 'undefined' == typeof this.active ) {
+        this.active = false;
+      }
       this.render(); // not all views are self-rendering. This one is.
     },
 
@@ -121,6 +205,31 @@ $( document ).ready( function() {
       this.bodyView = new nfFieldBodyView( { fieldView: this, el: $( this.bodyDiv ), model: this.model } );
       
       return this;
+    },
+
+    toggle: function() {
+      // Check to see if our body's HTML is empty.
+      if ( '' == $( this.bodyDiv ).html() ) {
+        this.open();
+      } else {
+        // It isn't empty, so deactivate this field and remove the body HTML.
+        this.close();
+      }
+    },
+
+    open: function() {
+      // Re-render our body.
+      this.bodyView.render( this.currentSection );
+      // Update our fieldView with the current status
+      this.active = true;
+      this.headerView.render();
+    },
+
+    close: function() {
+      $( this.fieldDiv ).removeClass( 'active' );
+      $( this.bodyDiv ).empty();
+      this.active = false;
+      this.headerView.render();
     }
 
   } );
@@ -141,11 +250,31 @@ $( document ).ready( function() {
     },
 
     render: function() {
-      // Render our header.
-      var template = _.template( $( '#tmpl-nf-field-header' ).html(), { field: this.model } );
+
+      // Render our toggle button into our header.
+      var template = _.template( $( '#tmpl-nf-field-header-toggle' ).html(), { active: this.fieldView.active } );
       $( this.el ).html( template );
+      
+      // Check to see if the field is active.
+      if ( this.fieldView.active ) {
+        // This field is active, so show the short header, which is less verbose.
+        var template = $( '#tmpl-nf-field-header-content-short' ).html();
+      } else {
+        if ( 'verbose' == app.listView ) {
+          // This field is inactive, load the longer header.
+          var template = $( '#tmpl-nf-field-header-content-verbose' ).html();
+        } else {
+          // This field is active, so show the short header, which is less verbose.
+          var template = $( '#tmpl-nf-field-header-content-short' ).html();
+        }
+      }
+
+      // Render our header.
+      template = _.template( template, { fieldTypes: app.Collections.fieldTypes, field: this.model } );
+      $( this.el ).append( template );
       // Prevent selection so that double-clicking on the header doesn't select text.
       $( '.nf-field-header' ).disableSelection();
+      $( '.nf-disable-selection' ).disableSelection();
     },
 
     // Listen for double clicks and clicks inside our header and on our toggle button.
@@ -156,7 +285,7 @@ $( document ).ready( function() {
 
     // Calls the toggle() function of the parent view's body.
     toggleFieldView: function() {
-      this.fieldView.bodyView.toggle();
+      this.fieldView.toggle();
     }
 
   } );
@@ -180,7 +309,7 @@ $( document ).ready( function() {
       // Add our passed fieldView to 'this' context.
       // This lets us access parent view stuff from within the child.
       this.fieldView = vars.fieldView;
-      this.render( this.fieldView.currentSection );
+      // this.render( this.fieldView.currentSection );
     },
 
     render: function( section ) {
@@ -206,18 +335,8 @@ $( document ).ready( function() {
 
       // Render our content section.
       this.contentView = new nfFieldContentView( { fieldView: this.fieldView, el: this.contentDiv, model: this.model } );
-    },
-
-    toggle: function() {
-      // Check to see if our body's HTML is empty.
-      if ( '' == $( this.el ).html() ) {
-        //If it is empty, re-render our body.
-        this.render( this.fieldView.currentSection );
-      } else {
-        // It isn't empty, so deactivate this field and remove the body HTML.
-        $( this.fieldView.fieldDiv ).removeClass( 'active' );
-        $( this.el ).empty();
-      }
+      
+      return this;
     }
 
   } );
@@ -268,7 +387,11 @@ $( document ).ready( function() {
     },
 
     changeType: function( e ) {
+      // Update our model with the new field type.
       this.model.set( 'type', $( e.target ).val() );
+      // Re-render our header based upon the new field type.
+      this.fieldView.headerView.render();
+      // Re-render our body view based upon the new field type.
       this.fieldView.bodyView.render( this.fieldView.currentSection );
     }
 
@@ -326,6 +449,8 @@ $( document ).ready( function() {
 
   } );
 
+  app.Collections.builderBarItems = new nfBuilderBarItems();
+  app.Views.builderBar = new nfBuilderBarView( { collection: app.Collections.builderBarItems } );
   app.Collections.fields = new nfFields();
   app.Views.builder = new nfBuilderView( { collection: app.Collections.fields } );
 
