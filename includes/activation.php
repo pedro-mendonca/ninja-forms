@@ -140,6 +140,10 @@ function ninja_forms_activation( $network_wide ){
 
 		dbDelta( $sql );
 
+        $last_row = $wpdb->get_results( 'SELECT id FROM ' . $wpdb->prefix . 'ninja_forms ORDER BY id DESC LIMIT 1', ARRAY_A );
+        $auto_increment = (int) $last_row['id'] + 1;
+        $wpdb->query( "ALTER TABLE " . NF_OBJECTS_TABLE_NAME . " AUTO_INCREMENT = " . $auto_increment . ";" );
+
 		// Create our object relationships table
 
 		$sql = "CREATE TABLE IF NOT EXISTS " . NF_OBJECT_RELATIONSHIPS_TABLE_NAME . " (
