@@ -2,6 +2,8 @@
 
 class NF_Conversion_Reset
 {
+    public $forms;
+
     public $errors = array();
 
     public function __construct()
@@ -25,18 +27,25 @@ class NF_Conversion_Reset
 
         echo "<h2>Ninja Forms Conversion Reset</h2>";
 
-        // Check if table exists
+        // Check if old table exists
         if( 0 == $wpdb->query( "SHOW TABLES LIKE '" . NINJA_FORMS_TABLE_NAME . "'" ) ){
             $this->errors[] = "No forms to be converted (table does not exist).";
         } else {
 
             // Get all of our forms from the old table.
-            $forms = $wpdb->get_results( 'SELECT id FROM ' . $wpdb->prefix . 'ninja_forms', ARRAY_A );
+            $this->forms = $wpdb->get_results( 'SELECT id FROM ' . $wpdb->prefix . 'ninja_forms ORDER BY id asc', ARRAY_A );
 
             // Loop through our form ids and check to see if we have a form in the new database system with that ID
-            foreach ( $forms as $form ) {
+            foreach ( $this->forms as $form ) {
+
                 $type = $wpdb->get_row( 'SELECT type FROM ' . $wpdb->prefix . 'nf_objects WHERE id = ' . $form['id'] );
-                if ( $type && 'form' == $type->type ) { // We have a form in the new database system with this ID. Let's remove it.
+
+                // We have a form in the new database system with this ID.
+                if ( $type && 'form' == $type->type ) {
+
+                    $wpdb->query( 'INSERT INTO ' . $wpdb->prefix . 'nf_objects ( type ) VALUES ( "form" )' );
+                    $wpdb->query( 'UPDATE ' . $wpdb->prefix . 'nf_objectmeta SET object_id = ' . $wpdb->insert_id . ' WHERE object_id = ' . $form['id'] );
+
                     $wpdb->query( 'DELETE FROM ' . $wpdb->prefix .'nf_objects WHERE id = ' . $form['id'] );
                     $wpdb->query( 'DELETE FROM ' . $wpdb->prefix .'nf_objectmeta WHERE object_id = ' . $form['id'] );
                 }
@@ -47,8 +56,9 @@ class NF_Conversion_Reset
             delete_option( 'nf_converted_forms' );
         }
 
-        if( $this->errors ) {
 
+        // Output Errors or Success
+        if( $this->errors ) {
             foreach( $this->errors as $error) {
                 ?>
                 <div class="error">
@@ -64,6 +74,7 @@ class NF_Conversion_Reset
         }
 
     }
+
 
 } // End Ninja_Forms_View_Admin Class
 
