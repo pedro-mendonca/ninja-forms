@@ -16,7 +16,7 @@ class NF_Conversion_Reset
             'Ninja Forms Conversion Reset', // Menu Title
             'manage_options',               // Capability
             'ninja-forms-conversion-reset', // Menu Slug
-            array( $this, 'process')        // Display Function
+            array( $this, 'process')        // Function
         );
     }
     public function process()
