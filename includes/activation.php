@@ -140,9 +140,14 @@ function ninja_forms_activation( $network_wide ){
 
 		dbDelta( $sql );
 
-        $last_row = $wpdb->get_results( 'SELECT id FROM ' . $wpdb->prefix . 'ninja_forms ORDER BY id DESC LIMIT 1', ARRAY_A );
-        $auto_increment = (int) $last_row['id'] + 1;
-        $wpdb->query( "ALTER TABLE " . NF_OBJECTS_TABLE_NAME . " AUTO_INCREMENT = " . $auto_increment . ";" );
+        // Set Auto Increment based on pre-converted form IDs
+        if( 0 == $wpdb->query( "SHOW TABLES LIKE '" . NINJA_FORMS_TABLE_NAME . "'" ) ) {
+            $last_row = $wpdb->get_results('SELECT id FROM ' . $wpdb->prefix . NINJA_FORMS_TABLE_NAME . ' ORDER BY id DESC LIMIT 1', ARRAY_A);
+            if ( $last_row ) {
+                $auto_increment = (int)$last_row['id'] + 1;
+                $wpdb->query("ALTER TABLE " . NF_OBJECTS_TABLE_NAME . " AUTO_INCREMENT = " . $auto_increment . ";");
+            }
+        }
 
 		// Create our object relationships table
 
