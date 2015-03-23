@@ -27,7 +27,7 @@ class NF_Conversion_Reset
         // Loop through our form ids and check to see if we have a form in the new database system with that ID
         foreach ( $forms as $form ) {
             $type = $wpdb->get_row( 'SELECT type FROM ' . $wpdb->prefix . 'nf_objects WHERE id = ' . $form['id'] );
-            if ( 'form' == $type->type ) { // We have a form in the new database system with this ID. Let's remove it.
+            if ( $type && 'form' == $type->type ) { // We have a form in the new database system with this ID. Let's remove it.
                 $wpdb->query( 'DELETE FROM ' . $wpdb->prefix .'nf_objects WHERE id = ' . $form['id'] );
                 $wpdb->query( 'DELETE FROM ' . $wpdb->prefix .'nf_objectmeta WHERE object_id = ' . $form['id'] );
             }
