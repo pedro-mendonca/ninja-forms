@@ -2,6 +2,8 @@
 
 class NF_Conversion_Reset
 {
+    public $errors = array();
+
     public function __construct()
     {
         add_action('admin_menu', array( $this, 'register_submenu'), 9001);
@@ -21,6 +23,14 @@ class NF_Conversion_Reset
     {
         global $wpdb;
 
+        echo "<h2>Ninja Forms Conversion Reset</h2>";
+
+        // Check if table exists
+        if( 0 == $wpdb->query( "SHOW TABLES LIKE '" . NINJA_FORMS_TABLE_NAME . "'" ) ){
+            $this->errors[] = "Table does not exists";
+            return;
+        }
+
         // Get all of our forms from the old table.
         $forms = $wpdb->get_results( 'SELECT id FROM ' . $wpdb->prefix . 'ninja_forms', ARRAY_A );
 
@@ -36,6 +46,21 @@ class NF_Conversion_Reset
         // Remove our "converted" flags from the options table
         delete_option( 'nf_convert_forms_complete' );
         delete_option( 'nf_converted_forms' );
+
+        if( $this->errors ) {
+            foreach( $this->errors as $error) {
+                ?>
+                <div class="error">
+                    <p><?php echo "$error"; ?></p>
+                </div>
+            <?php
+            }
+        } else {
+            printf(
+                '<div class="updated"><p>' . __( 'Ninja Forms needs to upgrade your form notifications, click %shere%s to start the upgrade.', 'ninja-forms' ) . '</p></div>',
+                '<a href="' . admin_url( 'index.php?page=nf-processing&action=convert_notifications' ) . '">', '</a>'
+            );
+        }
 
     }
 
