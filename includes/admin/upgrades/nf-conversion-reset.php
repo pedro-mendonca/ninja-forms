@@ -45,6 +45,7 @@ class NF_Conversion_Reset
 
                     $wpdb->query( 'INSERT INTO ' . $wpdb->prefix . 'nf_objects ( type ) VALUES ( "form" )' );
                     $wpdb->query( 'UPDATE ' . $wpdb->prefix . 'nf_objectmeta SET object_id = ' . $wpdb->insert_id . ' WHERE object_id = ' . $form['id'] );
+                    $wpdb->query( 'UPDATE ' . $wpdb->prefix . 'ninja_forms_fields SET form_id = ' . $wpdb->insert_id . ' WHERE form_id = ' . $form['id'] );
 
                     $wpdb->query( 'DELETE FROM ' . $wpdb->prefix .'nf_objects WHERE id = ' . $form['id'] );
                     $wpdb->query( 'DELETE FROM ' . $wpdb->prefix .'nf_objectmeta WHERE object_id = ' . $form['id'] );
