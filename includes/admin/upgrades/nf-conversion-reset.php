@@ -38,14 +38,16 @@ class NF_Conversion_Reset
             // Loop through our form ids and check to see if we have a form in the new database system with that ID
             foreach ( $this->forms as $form ) {
 
-                $type = $wpdb->get_row( 'SELECT type FROM ' . $wpdb->prefix . 'nf_objects WHERE id = ' . $form['id'] );
+                $row = $wpdb->get_row( 'SELECT type FROM ' . $wpdb->prefix . 'nf_objects WHERE id = ' . $form['id'] );
 
                 // We have a form in the new database system with this ID.
-                if ( $type && 'form' == $type->type ) {
+                if ( $row && 'form' == $row->type ) {
 
                     $wpdb->query( 'INSERT INTO ' . $wpdb->prefix . 'nf_objects ( type ) VALUES ( "form" )' );
                     $wpdb->query( 'UPDATE ' . $wpdb->prefix . 'nf_objectmeta SET object_id = ' . $wpdb->insert_id . ' WHERE object_id = ' . $form['id'] );
                     $wpdb->query( 'UPDATE ' . $wpdb->prefix . 'ninja_forms_fields SET form_id = ' . $wpdb->insert_id . ' WHERE form_id = ' . $form['id'] );
+
+                    // ToDo: Update Submissions
 
                     $wpdb->query( 'DELETE FROM ' . $wpdb->prefix .'nf_objects WHERE id = ' . $form['id'] );
                     $wpdb->query( 'DELETE FROM ' . $wpdb->prefix .'nf_objectmeta WHERE object_id = ' . $form['id'] );
