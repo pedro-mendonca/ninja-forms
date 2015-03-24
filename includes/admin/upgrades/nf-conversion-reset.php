@@ -46,7 +46,7 @@ class NF_Conversion_Reset
                     $starting_id = $this->get_starting_id();
 
                     // Get new form ID to propagate
-                    $wpdb->query( "INSERT INTO ' . $wpdb->prefix . 'nf_objects ( id, type ) VALUES ( '" . $starting_id . "''form' )" );
+                    $wpdb->query( "INSERT INTO ' . $wpdb->prefix . 'nf_objects ( id, type ) VALUES ( '" . $starting_id . "', 'form' )" );
 
                     // Update object meta with new form ID
                     $wpdb->query( 'UPDATE ' . $wpdb->prefix . 'nf_objectmeta SET object_id = ' . $wpdb->insert_id . ' WHERE object_id = ' . $form['id'] );
