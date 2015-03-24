@@ -43,11 +43,37 @@ class NF_Conversion_Reset
                 // We have a form in the new database system with this ID.
                 if ( $row && 'form' == $row->type ) {
 
+                    // Get new form ID to propagate
                     $wpdb->query( 'INSERT INTO ' . $wpdb->prefix . 'nf_objects ( type ) VALUES ( "form" )' );
+
+                    // Update object meta with new form ID
                     $wpdb->query( 'UPDATE ' . $wpdb->prefix . 'nf_objectmeta SET object_id = ' . $wpdb->insert_id . ' WHERE object_id = ' . $form['id'] );
+
+                    // Update form fields with new form ID
                     $wpdb->query( 'UPDATE ' . $wpdb->prefix . 'ninja_forms_fields SET form_id = ' . $wpdb->insert_id . ' WHERE form_id = ' . $form['id'] );
 
-                    // ToDo: Update Submissions
+                    // Get posts (submissions) for form ID
+                    $row->posts = $wpdb->get_results( "SELECT post_id FROM " . $wpdb->prefix . "postmeta WHERE meta_key = '_form_id' AND meta_value = '" . $form['id'] . "'", ARRAY_A );
+
+                    // Filter posts (submissions) and verify with field comparison
+                    foreach( $row->posts as $post) {
+
+                        // Get the first field meta_key from postmeta matching post ID
+                        $field_meta_keys = $wpdb->get_results( "SELECT meta_key FROM " . $wpdb->prefix . "postmeta WHERE meta_key LIKE '_field_%' AND post_id = '" . $post['post_id'] . "' LIMIT 1", ARRAY_A);
+
+                        // Get the field ID integer from the field meta_key string
+                        $field_id = explode( "_", $field_meta_keys[0]['meta_key'])[2];
+
+                        // Check if the field belongs to the form
+                        $post['is_field_of_form'] = $wpdb->query( "SELECT * FROM " . $wpdb->prefix . "ninja_forms_fields WHERE id = '" . $field_id . "' AND form_id = '" . $form['id'] . "'" );
+
+                        // If the field belongs to the form
+                        if( $post['is_field_of_form'] ) {
+
+                            // Update post (submission) form ID
+                            $wpdb->query( "UPDATE " . $wpdb->prefix . "postmeta SET meta_value = '" . $wpdb->insert_id . "' WHERE meta_key = '_form_id' AND meta_value = '" . $form['id'] . "'" );
+                        }
+                    }
 
                     $wpdb->query( 'DELETE FROM ' . $wpdb->prefix .'nf_objects WHERE id = ' . $form['id'] );
                     $wpdb->query( 'DELETE FROM ' . $wpdb->prefix .'nf_objectmeta WHERE object_id = ' . $form['id'] );
