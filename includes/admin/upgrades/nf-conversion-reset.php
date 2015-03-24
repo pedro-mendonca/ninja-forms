@@ -43,8 +43,10 @@ class NF_Conversion_Reset
                 // We have a form in the new database system with this ID.
                 if ( $row && 'form' == $row->type ) {
 
+                    $starting_id = $this->get_starting_id();
+
                     // Get new form ID to propagate
-                    $wpdb->query( 'INSERT INTO ' . $wpdb->prefix . 'nf_objects ( type ) VALUES ( "form" )' );
+                    $wpdb->query( "INSERT INTO ' . $wpdb->prefix . 'nf_objects ( id, type ) VALUES ( '" . $starting_id . "''form' )" );
 
                     // Update object meta with new form ID
                     $wpdb->query( 'UPDATE ' . $wpdb->prefix . 'nf_objectmeta SET object_id = ' . $wpdb->insert_id . ' WHERE object_id = ' . $form['id'] );
@@ -102,6 +104,25 @@ class NF_Conversion_Reset
             );
         }
 
+    }
+
+    public function get_starting_id()
+    {
+        global $wpdb;
+
+        // Get the last ID from the ninja_forms (deprecated) table
+        $last_old_row = $wpdb->get_results( "SELECT id FROM " . $wpdb->prefix . "ninja_forms ORDER BY id DESC LIMIT 1", ARRAY_A )[0];
+        $last_old_id = $last_old_row['id'];
+
+        // Get the last ID from the nf_objects table
+        $last_new_row = $wpdb->get_results( "SELECT id FROM " . $wpdb->prefix . "nf_objects ORDER BY id DESC LIMIT 1", ARRAY_A )[0];
+        $last_new_id = $last_new_row['id'];
+
+        // Compare the last row IDs to determine which is higher
+        $larger_id = max( $last_old_id, $last_new_id );
+
+        // Return an ID that should not conflict with either table
+        return $larger_id + 1;
     }
 
 
