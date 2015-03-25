@@ -15,8 +15,7 @@ class NF_Convert_Forms extends NF_Step_Processing {
 
         if( 0 == $wpdb->query( "SHOW TABLES LIKE '" . NINJA_FORMS_TABLE_NAME . "'" ) ) {
             $this->errors[] = 'The table ' . NINJA_FORMS_TABLE_NAME . ' was not found in the database';
-            //$this->redirect = admin_url( 'admin.php?page=ninja-forms' );
-            return false;
+            $this->redirect = admin_url( 'admin.php?page=ninja-forms' );
             return array( 'complete' => true );
         }
 
