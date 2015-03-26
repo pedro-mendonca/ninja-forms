@@ -86,6 +86,14 @@ $( document ).ready( function() {
       }
     },
 
+    add: function( el ) {
+      app.Collections.fields.add( {
+        'id': 'new',
+        'type': 'text',
+        'label': 'New Field'
+      } );
+    },
+
     toggleView: function( el ) {
 
       if ( 'short' == app.listView ) {
@@ -133,7 +141,10 @@ $( document ).ready( function() {
     initialize: function() {
       var that = this;
       _.bindAll( this, 'render' );
-      this.collection.fetch( { success: this.render } );
+    
+      this.collection.fetch( { success: this.render, silent: true } );
+      this.collection.bind( 'add', this.render );
+      this.collection.bind( 'remove', this.render );  
     },
 
     render: function() {
@@ -144,7 +155,7 @@ $( document ).ready( function() {
       app.Views.field = {};
       this.collection.each( function( field ) {
         var id = field.get( 'id' );
-        app.Views.field[ id ] = new nfFieldView( { el: that.el, model: field } );
+        var view = new nfFieldView( { el: that.el, model: field } );
       } );
     }
 
@@ -218,10 +229,10 @@ $( document ).ready( function() {
     },
 
     open: function() {
+      this.active = true;
       // Re-render our body.
       this.bodyView.render( this.currentSection );
       // Update our fieldView with the current status
-      this.active = true;
       this.headerView.render();
     },
 
@@ -240,7 +251,6 @@ $( document ).ready( function() {
    * @since  3.0
    */
   var nfFieldHeaderView = Backbone.View.extend( {
-
     initialize: function( vars ) {
       _.bindAll( this, 'render' );
       // Add our passed fieldView to 'this' context.
@@ -309,7 +319,10 @@ $( document ).ready( function() {
       // Add our passed fieldView to 'this' context.
       // This lets us access parent view stuff from within the child.
       this.fieldView = vars.fieldView;
-      // this.render( this.fieldView.currentSection );
+      console.log( this.fieldView.active );
+      if ( this.fieldView.active ) {
+        this.render( this.fieldView.currentSection );
+      }
     },
 
     render: function( section ) {

@@ -167,7 +167,7 @@ function nf_tab_builder() {
 		.nf-form-builder-bar .dashicons {
 			padding: 2px 8px 4px 0;
 		}
-		.nf-field-selector a.dashicons-arrow-down {
+		.nf-field-selector span.dashicons-arrow-down {
 			border-left: 1px solid #ccc;
 			padding: 2px 0 4px 5px;
 			margin-left: 8px;
@@ -210,7 +210,7 @@ function nf_tab_builder() {
 
 	<script type="text/html" id="tmpl-nf-form-builder-bar">
 		<a href="#" class="button-primary nf-item">Save</a>
-		<div class="button-secondary nf-field-selector nf-item" style="float: right;"><a href="#">Add New Field</a><a class="dashicons dashicons-arrow-down"></a></div>
+		<div class="button-secondary nf-field-selector nf-item" style="float: right;" data-function="add">Add New Field<span class="dashicons dashicons-arrow-down"></span></div>
 	</script>
 
 	<script type="text/html" id="tmpl-nf-form-builder-bar-toggle-view">
